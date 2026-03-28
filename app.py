@@ -8,6 +8,7 @@ import traceback
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10MB max file size
 
 # Create uploads folder if it doesn't exist
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -35,7 +36,6 @@ def extract_text_from_pdf(file):
 def extract_text_from_pdf_alternative(file):
     """Extract text using pdfplumber (more robust for complex PDFs)"""
     try:
-        # Reset file pointer to beginning
         file.seek(0)
         file_content = file.read()
         pdf_file = BytesIO(file_content)
@@ -88,12 +88,10 @@ def index():
             cv_file = request.files["cv"]
             job_desc = request.form["job_description"]
             
-            # Check if file was selected
             if cv_file.filename == "":
                 error = "No file selected"
                 return render_template("index.html", result=None, error=error)
             
-            # Check file extension
             file_extension = cv_file.filename.rsplit('.', 1)[-1].lower()
             
             # Extract text based on file type
@@ -101,10 +99,8 @@ def index():
             
             if file_extension == "pdf":
                 try:
-                    # Try PyPDF2 first
                     cv_text = extract_text_from_pdf(cv_file)
                 except Exception as e:
-                    # If PyPDF2 fails, try pdfplumber
                     print(f"PyPDF2 failed: {e}, trying pdfplumber...")
                     try:
                         cv_text = extract_text_from_pdf_alternative(cv_file)
@@ -118,14 +114,12 @@ def index():
                 except Exception as e:
                     error = f"Failed to extract text from DOCX: {str(e)}"
                     return render_template("index.html", result=None, error=error)
-            
             else:
                 error = "Unsupported file format. Please upload PDF or DOCX files only."
                 return render_template("index.html", result=None, error=error)
             
-            # Check if text was extracted
             if not cv_text or not cv_text.strip():
-                error = "Could not extract text from the uploaded file. The file might be empty or image-based."
+                error = "Could not extract text from the uploaded file."
                 return render_template("index.html", result=None, error=error)
             
             # Create prompt for OpenAI
@@ -144,14 +138,12 @@ Please provide analysis in the following format:
 
 **Missing Keywords:** 
 - List important keywords from the job description that are missing in the CV
-- Focus on skills, technologies, and qualifications
 
 **Strengths:**
 - What matches well in the CV
 
 **Suggestions for Improvement:**
 - Specific recommendations to improve the CV for this role
-- What to add or emphasize
 
 **Summary:**
 Brief overall assessment
@@ -159,9 +151,9 @@ Brief overall assessment
 
             # Call OpenAI API
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-3.5-turbo",  # Using cheaper model for deployment
                 messages=[
-                    {"role": "system", "content": "You are an expert CV analyzer and career coach. Provide detailed, actionable feedback."},
+                    {"role": "system", "content": "You are an expert CV analyzer and career coach."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
@@ -180,4 +172,5 @@ Brief overall assessment
     return render_template("index.html", result=None, error=None)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)  # debug=False for production
