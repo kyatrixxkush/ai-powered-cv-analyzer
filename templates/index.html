@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI CV Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        input[type="file"]:hover {
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .error {
+            background: #fee;
+            border-left: 4px solid #f44;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            color: #c33;
+        }
+        
+        .result {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .result h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .result pre {
+            white-space: pre-wrap;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI CV Analyzer</h1>
+            <p>Upload your CV and paste a job description to get AI-powered insights</p>
+        </div>
+        
+        <div class="content">
+            <form method="POST" enctype="multipart/form-data" id="cvForm">
+                <div class="form-group">
+                    <label for="job_description">📋 Job Description</label>
+                    <textarea 
+                        id="job_description" 
+                        name="job_description" 
+                        rows="8" 
+                        placeholder="Paste the job description here..."
+                        required
+                    ></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cv">📄 Upload CV (PDF or DOCX)</label>
+                    <input 
+                        type="file" 
+                        id="cv" 
+                        name="cv" 
+                        accept=".pdf,.docx"
+                        required
+                    >
+                </div>
+                
+                <button type="submit" id="analyzeBtn">🔍 Analyze CV</button>
+            </form>
+            
+            {% if error %}
+            <div class="error">
+                <strong>⚠️ Error:</strong> {{ error }}
+            </div>
+            {% endif %}
+            
+            {% if result %}
+            <div class="result">
+                <h2>📊 Analysis Results</h2>
+                <pre>{{ result }}</pre>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('cvForm').addEventListener('submit', function() {
+            const btn = document.getElementById('analyzeBtn');
+            btn.innerHTML = '⏳ Analyzing...';
+            btn.disabled = true;
+        });
+    </script>
+</body>
+</html>
